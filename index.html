@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amir,Tech Snake Game</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+        canvas {
+            border: 1px solid black;
+        }
+        #controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .button {
+            width: 50px;
+            height: 50px;
+            margin: 5px;
+            font-size: 18px;
+        }
+        #horizontal-buttons {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <button id="restartBtn">نویکردنەوە</button>
+    <div id="controls">
+        <button class="button" id="upBtn">↑</button>
+        <div id="horizontal-buttons">
+            <button class="button" id="leftBtn">←</button>
+            <button class="button" id="rightBtn">→</button>
+        </div>
+        <button class="button" id="downBtn">↓</button>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let box;
+        let snake;
+        let food;
+        let score;
+        let d;
+        let game;
+
+        document.addEventListener('keydown', direction);
+        document.getElementById('restartBtn').addEventListener('click', restartGame);
+        document.getElementById('upBtn').addEventListener('click', () => setDirection('UP'));
+        document.getElementById('leftBtn').addEventListener('click', () => setDirection('LEFT'));
+        document.getElementById('rightBtn').addEventListener('click', () => setDirection('RIGHT'));
+        document.getElementById('downBtn').addEventListener('click', () => setDirection('DOWN'));
+
+        function setDirection(newDirection) {
+            if (newDirection === 'LEFT' && d !== 'RIGHT') d = 'LEFT';
+            else if (newDirection === 'UP' && d !== 'DOWN') d = 'UP';
+            else if (newDirection === 'RIGHT' && d !== 'LEFT') d = 'RIGHT';
+            else if (newDirection === 'DOWN' && d !== 'UP') d = 'DOWN';
+        }
+
+        function direction(event) {
+            let key = event.keyCode;
+            if (key == 37 && d != 'RIGHT') {
+                d = 'LEFT';
+            } else if (key == 38 && d != 'DOWN') {
+                d = 'UP';
+            } else if (key == 39 && d != 'LEFT') {
+                d = 'RIGHT';
+            } else if (key == 40 && d != 'UP') {
+                d = 'DOWN';
+            }
+        }
+
+        function collision(newHead, array) {
+            for (let i = 0; i < array.length; i++) {
+                if (newHead.x == array[i].x && newHead.y == array[i].y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function draw() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < snake.length; i++) {
+                ctx.fillStyle = (i == 0) ? 'darkgreen' : 'green';
+                ctx.fillRect(snake[i].x, snake[i].y, box, box);
+
+                ctx.strokeStyle = 'white';
+                ctx.strokeRect(snake[i].x, snake[i].y, box, box);
+            }
+
+            ctx.fillStyle = 'red';
+            ctx.fillRect(food.x, food.y, box, box);
+
+            let snakeX = snake[0].x;
+            let snakeY = snake[0].y;
+
+            if (d == 'LEFT') snakeX -= box;
+            if (d == 'UP') snakeY -= box;
+            if (d == 'RIGHT') snakeX += box;
+            if (d == 'DOWN') snakeY += box;
+
+            if (snakeX == food.x && snakeY == food.y) {
+                score++;
+                food = {
+                    x: Math.floor(Math.random() * (canvas.width / box - 1) + 1) * box,
+                    y: Math.floor(Math.random() * (canvas.height / box - 1) + 1) * box
+                };
+            } else {
+                snake.pop();
+            }
+
+            let newHead = {
+                x: snakeX,
+                y: snakeY
+            };
+
+            if (snakeX < 0 || snakeX >= canvas.width || snakeY < 0 || snakeY >= canvas.height || collision(newHead, snake)) {
+                clearInterval(game);
+            }
+
+            snake.unshift(newHead);
+
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Changa one';
+            ctx.fillText(score, 2 * box, 1.6 * box);
+        }
+
+        function restartGame() {
+            clearInterval(game);
+            initializeGame();
+        }
+
+        function initializeGame() {
+            canvas.width = window.innerWidth < 500 ? window.innerWidth - 20 : 400;
+            canvas.height = window.innerWidth < 500 ? window.innerWidth - 20 : 400;
+            box = Math.floor(canvas.width / 20);
+
+            snake = [];
+            snake[0] = { x: 9 * box, y: 10 * box };
+
+            food = {
+                x: Math.floor(Math.random() * (canvas.width / box - 1) + 1) * box,
+                y: Math.floor(Math.random() * (canvas.height / box - 1) + 1) * box
+            };
+
+            score = 0;
+            d = undefined;
+
+            game = setInterval(draw, 100);
+        }
+
+        window.addEventListener('resize', restartGame);
+        initializeGame();
+    </script>
+</body>
+</html>
